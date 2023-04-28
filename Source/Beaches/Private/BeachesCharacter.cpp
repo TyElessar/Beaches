@@ -1,34 +1,62 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "BeachesCharacter.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
-// Sets default values
-ABeachesCharacter::ABeachesCharacter()
-{
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+
+ABeachesCharacter::ABeachesCharacter() {
+	
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
+	CameraBoom->SetupAttachment(RootComponent);
+
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
+	FollowCamera->SetupAttachment(CameraBoom);
+
 	PrimaryActorTick.bCanEverTick = true;
 
 }
 
-// Called when the game starts or when spawned
-void ABeachesCharacter::BeginPlay()
-{
+void ABeachesCharacter::BeginPlay() {
 	Super::BeginPlay();
 	
 }
 
-// Called every frame
-void ABeachesCharacter::Tick(float DeltaTime)
-{
+void ABeachesCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
 }
 
-// Called to bind functionality to input
-void ABeachesCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
+void ABeachesCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAxis("MoveForward", this, &ABeachesCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &ABeachesCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("LookUp", this, &ABeachesCharacter::LookUp);
+	PlayerInputComponent->BindAxis("LookAround", this, &ABeachesCharacter::LookAround);
+
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ABeachesCharacter::Jump);
+
 }
+
+void ABeachesCharacter::MoveForward(float value) {
+	FRotator Rotation = Controller->GetControlRotation();
+	FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
+	FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	AddMovementInput(Direction, value);
+}
+
+void ABeachesCharacter::MoveRight(float value) {
+	FRotator Rotation = Controller->GetControlRotation();
+	FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
+	FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	AddMovementInput(Direction, value);
+}
+
+void ABeachesCharacter::LookUp(float value) {
+	AddControllerPitchInput(value * MouseSensibility * GetWorld()->GetDeltaSeconds());
+}
+
+void ABeachesCharacter::LookAround(float value) {
+	AddControllerYawInput(value * MouseSensibility * GetWorld()->GetDeltaSeconds());
+}
+
 
